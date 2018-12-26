@@ -1,0 +1,28 @@
+solutions====> both support GPFS and SAS 
+GRID====> collection 
+
+Quoram====>
+
+
+Prod1(Primary)-31
+Prod2(secondary)-31
+Out of 31 nodes
+GPFS Manager nodes - 6
+GPFS client nodes - 25
+
+Out of 6 Manager nodesn nodes 
+NSD nodes ===> All 6 Manager nodes act as NSD nodes who can serve storage to all
+Remaining nodes in the cluster in case of any issues accessing storage.
+Quorum nodes ====> 3 manager nodes other than gateway nodes are quorum nodes to maintain the cluster up
+Out of 3 nodes, quorum set as 2.
+
+Gate way nodes-other than quorum nodes, remaining are gateway nodes which will participate in data replication to secondary site using AFM and Backup and recovery opearations through Avamar.
+Filesystem Manager- Any one node will be the file system manager node to manage the file system operations
+Cluster Manager- Any one node will be the cluster manager node to manage cluster operations
+
+Primary to Secondary ==> Data replication takes place automatically using GPFS AFM(Asynchronous file management)
+For reverse replication- Everytime, We need to do manual configurtion to
+change the AFM role reversal which we started recenely (it's not updated
+in the DR run book)
+Single filesystem in environment and multiple filesets (fileset is a partition of the filesystem)
+  

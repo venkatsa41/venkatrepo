@@ -1,0 +1,9 @@
+1)Build Automation tools:  Maven
+2)Configuration management Tools: Ansible,Chef,Puppet and Saltstack
+3)Continuous Intergration Tools: Jenkins, Apache camel and Team City
+4)Continuous Monitoring Tools: Nagios,Genios
+5)Testing Tools: JUnit
+6)Version Control Tools: git, subversion and CVS
+
+
+jenkins,GIT,Maven,Docker,Ansible,Vagrant,Ant, BITBUcket

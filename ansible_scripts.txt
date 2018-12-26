@@ -1,0 +1,1072 @@
+==================================================================================================================================
+[bh00493@esu4v390 playbooks]$ ls
+adhoc                                 mst_connection_verify     mst_enable_fastboot        mst_isp            mst_nfs_check         mst_package_install  mst_rsa           mst_ssp             nfs_management_ip_check
+mst_2factor_exclude                   mst_create_users          mst_files                  mst_isp_patching   mst_nmonutil_setup    mst_qpm_check        mst_rsa_manual    mst_sssd            os_version_print
+mst_add_certificateadmins_to_servers  mst_cyberarkid            mst_grub_password          mst_ksplice        mst_nscd              mst_reboot           mst_rsa_module    mst_telnet_cleanup  puppet_install
+mst_add_group_to_users.allow          mst_disable_iptables      mst_host_explorer_install  mst_multipath      mst_ol_convert        mst_reboot_fix       mst_sat_register  mst_vas_upgrade     ro_fs_check
+
+mst_carkaim                           mst_disable_repos         mst_hp_bl460c_check        mst_network_check  mst_osad              mst_rhn_check        mst_setfacl       mst_vmware_tools    run_script
+mst_chef_prereqs                      mst_downgrade_irqbalance  mst_install_cheferson      mst_nfs_automount  mst_os_version_check  mst_ro_fs            mst_set_root      mst_yum_update
+[bh00493@esu4v390 playbooks]$ cd mst_reboot_fix
+[bh00493@esu4v390 mst_reboot_fix]$ ls
+files  run_script.yml
+[bh00493@esu4v390 mst_reboot_fix]$ cat run_script.yml
+---
+- hosts: rebutt
+  tasks:
+     - name: Transfer the script
+       copy: src=files/mst_reboot.sh dest=/var/tmp mode=0777
+
+     - name: Execute the script
+       command: /var/tmp/mst_reboot.sh
+[bh00493@esu4v390 mst_reboot_fix]$ cat /var/tmp/mst_reboot.sh
+cat: /var/tmp/mst_reboot.sh: No such file or directory
+[bh00493@esu4v390 mst_reboot_fix]$ cd /var/tmp
+[bh00493@esu4v390 tmp]$ ls
+b004927  FilesChown.sh  GTPBACKUP.file  kanboard-latest.zip             session_20160119_150123  session_20160119_150718  www-html.tar
+blah     GPT.INI        httpd-etc.tar   mst_rhel_ol_convert_and_reg.sh  session_20160119_150435  sssd_conv.out            yum-b004927-cU4Y7k
+[bh00493@esu4v390 tmp]$ cat mst_rhel_ol_convert_and_reg.sh
+cat: mst_rhel_ol_convert_and_reg.sh: Permission denied
+[bh00493@esu4v390 tmp]$ cd -
+/etc/ansible/playbooks/mst_reboot_fix
+[bh00493@esu4v390 mst_reboot_fix]$ cd ..
+[bh00493@esu4v390 playbooks]$ cd mst_sat_register
+[bh00493@esu4v390 mst_sat_register]$ ls
+files  register_system.yml
+[bh00493@esu4v390 mst_sat_register]$ cat register_system.yml
+- hosts: register_list
+  remote_user: root
+  serial: 20
+  tasks:
+
+- name: Unsubscribe from SL Sat 6 server
+  action: command /usr/sbin/subscription-manager unsubscribe
+
+- name: Clean Up
+  action: command /usr/sbin/subscription-manager clean
+
+- name: Import the MST GPG key.
+  rpm_key: state=present key=http://esu4v352/pub/gpg/SAT-GPG-KEY
+
+- name: Transfer the up2date file
+  template: src=files/up2date dest=/etc/sysconfig/rhn/up2date mode=0644 backup=yes
+
+- name: Transfer the conf file
+  template: src=files/RHN-ORG-TRUSTED-SSL-CERT dest=/usr/share/rhn/RHN-ORG-TRUSTED-SSL-CERT mode=0644 backup=yes
+
+- name: Issue Register Command
+  action: command /usr/sbin/rhnreg_ks --activationkey=1-c7dbfb19b7bce410611c204bc9c120ce --force
+
+[bh00493@esu4v390 mst_sat_register]$ cd ../mst_vas_upgrade
+[bh00493@esu4v390 mst_vas_upgrade]$ ls
+inv  vas_grp00  vas_grp01  vas_grp02  vas_grp03  vas_grp04  vas_grp05  vas_grp06  vas_grp07  vas_grp08  vas_grp09  vas_grp10  vas_grp11  vas_grp12  vas_grp13  vas_upgrade.yml
+[bh00493@esu4v390 mst_vas_upgrade]$ cat vas_upgrade.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Import the MST GPG key.
+    rpm_key: state=present key=http://esu4v352/pub/gpg/MST-GPG-KEY
+
+  - name: Check if vasclnt package is installed.
+    command: rpm -q vasclnt
+    register: rpm_vasclnt
+
+  - name: Upgrade vasclnt (if installed).
+    yum: name=vasclnt state=latest
+    when: rpm_vasclnt.rc == 0
+
+  - name: Check if vasgp package is installed.
+    command: rpm -q vasgp
+    register: rpm_vasgp
+
+  - name: Upgrade vasgp (if installed).
+    yum: name=vasgp state=latest
+    when: rpm_vasgp.rc == 0
+[bh00493@esu4v390 mst_vas_upgrade]$ cd ../ro_fs_check
+[bh00493@esu4v390 ro_fs_check]$ ls
+files  run_script.yml
+[bh00493@esu4v390 ro_fs_check]$ cat run_script.yml
+---
+- hosts: readtest
+  tasks:
+     - name: Transfer the script
+       copy: src=files/ro_fs.sh dest=/var/tmp mode=0777
+
+     - name: Execute the script
+       command: /var/tmp/ro_fs.sh
+       register: result
+     - debug: var=result.stdout_lines
+[bh00493@esu4v390 ro_fs_check]$ ls
+files  run_script.yml
+[bh00493@esu4v390 ro_fs_check]$ cd ../mst_carkaim
+[bh00493@esu4v390 mst_carkaim]$ ls
+files  inv  mst_carkaim.retry  mst_carkaim.yml  mth.lst  servers.lst  ste.2.lst  ste.lst
+[bh00493@esu4v390 mst_carkaim]$ cat mst_carkaim.yml
+cat: mst_carkaim.yml: Permission denied
+[bh00493@esu4v390 mst_carkaim]$ pwd
+/etc/ansible/playbooks/mst_carkaim
+[bh00493@esu4v390 mst_carkaim]$ sudo su -
+[root@esu4v390 ~]# cd /etc/ansible/playbooks/mst_carkaim
+[root@esu4v390 mst_carkaim]# cat mst_carkaim.yml
+- hosts: servers
+  gather_facts: no
+  serial: 1
+#  become: yes
+
+  tasks:
+    - name:   Cleanup previous failed install
+      file:   path=/etc/opt/CARKaim state=absent
+
+    - name:   Uninstall CARKaim
+      yum:    name=CARKaim state=removed
+
+    - name:   Create CARKaim directory
+      file:   path=/opt/CARKaim owner=root group=root state=directory
+
+    - name:   Copy aimparms to remote server
+      copy:   src=./files/aimparms.sample dest=/var/tmp/aimparms owner=root group=root
+
+    - name:   Copy CARKaim rpm to remote server
+      copy:   src=./files/CARKaim-9.60.0.9.x86_64.rpm dest=/tmp/CARKaim-9.60.0.9.x86_64.rpm owner=root group=root
+
+    - name:   Copy createcred script to remote server
+      copy:   src=./files/CreateCredFile dest=/opt/CARKaim/CreateCredFile owner=root group=root mode=0755
+
+    - name:   Copy vault.ini to remote server
+      copy:   src=./files/Vault.ini dest=/opt/CARKaim/Vault.ini owner=root group=root
+
+    - name:    Create credential file
+#      command: /opt/CARKaim/CreateCredFile /opt/CARKaim/credfile Password -Username Administrator -Password hTEiGtlkMf29lGi
+#     command: /opt/CARKaim/CreateCredFile /opt/CARKaim/credfile Password -Username ca-aim-inst -Password *mlb3:ZE
+      command: /opt/CARKaim/CreateCredFile /opt/CARKaim/credfile Password -Username ca-aim-inst -Password Pa)5@7pM
+    - name:   Validate redhat-lsb
+      yum:    name=redhat-lsb state=present
+
+    - name:   Install CARKaim rpm
+      yum:    name=/tmp/CARKaim-9.60.0.9.x86_64.rpm state=present
+
+    - name:    Start the service and set it to come up on reboot
+      service: name=aimprv state=started enabled=yes
+[root@esu4v390 mst_carkaim]# cd ../mst_disable_repos
+[root@esu4v390 mst_disable_repos]# ls
+disable_repos.yml  lymer.lst
+[root@esu4v390 mst_disable_repos]# cat disable_repos.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Find all local repos
+    raw: find /etc/yum.repos.d -type f
+    register: repos
+  - name: Disable all local repos
+    replace: dest={{item}} regexp="^enabled=1" replace="enabled=0"
+    with_items: repos.stdout_lines
+[root@esu4v390 mst_disable_repos]# cd ../mst_hp_bl460c_check
+[root@esu4v390 mst_hp_bl460c_check]# ls
+hp_bl460c_check.yaml  inv
+[root@esu4v390 mst_hp_bl460c_check]# cat hp_bl460c_check.yaml
+---
+  - hosts: servers
+    remote_user: root
+    serial: 10
+    gather_facts: yes
+
+    tasks:
+      #
+      # Check the type of server
+      #
+      - name: Check for HP BL460c Server
+        shell: dmidecode | grep "Product Name" | head -1 | awk '{ print $4 }'
+        register: server_check
+
+      #
+      # Install the sysfsutils package containing systool only on
+      # BL460c BLADE servers with OS version 6.x or 7.x
+      #
+      - name: Make sure systool is installed
+        yum: name=sysfsutils state=latest
+        when: ("{{server_check.stdout}}" == "BL460c") and
+              ((ansible_distribution_major_version == "6") or (ansible_distribution_major_version == "7"))
+
+      #
+      # Check for the existence of SCSI host #1
+      # (We are making an assumption here that on BL460c servers #1 will always be one of
+      #  the FlexConnect hosts.)
+      #
+      - name: Check for scsi host
+        stat:
+          path: /sys/class/scsi_host/host1
+        register: scsi_host_check
+        when: ("{{server_check.stdout}}" == "BL460c") and
+              ((ansible_distribution_major_version == "6") or (ansible_distribution_major_version == "7"))
+
+      #
+      # Get the FlexConnect firmware version via systool
+      #
+      - name: Get 650FL firmware version
+        shell: systool -c scsi_host -v -d host1 | egrep "modelname | fwrev" | sort -r
+        register: result
+        when: ("{{server_check.stdout}}" == "BL460c") and scsi_host_check.stat.exists and
+              ((ansible_distribution_major_version == "6") or (ansible_distribution_major_version == "7"))
+
+      - debug:
+          msg: "650FL firmware version on {{inventory_hostname}} : {{result.stdout_lines}}"
+        when: ("{{server_check.stdout}}" == "BL460c") and scsi_host_check.stat.exists and
+              ((ansible_distribution_major_version == "6") or (ansible_distribution_major_version == "7"))
+...
+[root@esu4v390 mst_hp_bl460c_check]# ls
+hp_bl460c_check.yaml  inv
+[root@esu4v390 mst_hp_bl460c_check]#
+
+=========================================================================================================================================================================================================
+
+
+Subject: Ansible Set#9
+ 
+
+[root@esu4v390 mst_hp_bl460c_check]# cd ..
+[root@esu4v390 playbooks]# ls
+adhoc                                 mst_connection_verify     mst_enable_fastboot        mst_isp            mst_nfs_check         mst_package_install  mst_rsa           mst_ssp             nfs_management_ip_check
+mst_2factor_exclude                   mst_create_users          mst_files                  mst_isp_patching   mst_nmonutil_setup    mst_qpm_check        mst_rsa_manual    mst_sssd            os_version_print
+mst_add_certificateadmins_to_servers  mst_cyberarkid            mst_grub_password          mst_ksplice        mst_nscd              mst_reboot           mst_rsa_module    mst_telnet_cleanup  puppet_install
+mst_add_group_to_users.allow          mst_disable_iptables      mst_host_explorer_install  mst_multipath      mst_ol_convert        mst_reboot_fix       mst_sat_register  mst_vas_upgrade     ro_fs_check
+mst_carkaim                           mst_disable_repos         mst_hp_bl460c_check        mst_network_check  mst_osad              mst_rhn_check        mst_setfacl       mst_vmware_tools    run_script
+mst_chef_prereqs                      mst_downgrade_irqbalance  mst_install_cheferson      mst_nfs_automount  mst_os_version_check  mst_ro_fs            mst_set_root      mst_yum_update
+[root@esu4v390 playbooks]# cd mst_network_check
+[root@esu4v390 mst_network_check]# ls
+files  run_script.yml
+[root@esu4v390 mst_network_check]# cat run_script.yml
+---
+- hosts: smartpush
+  tasks:
+     - name: Transfer the script
+       copy: src=files/mst_network_info.sh dest=/var/tmp mode=0777
+
+     - name: Execute the script
+       command: /var/tmp/mst_network_info.sh
+       register: result
+     - debug: var=result.stdout_lines
+[root@esu4v390 mst_network_check]# cd ../mst_osad
+[root@esu4v390 mst_osad]# ls
+inv  osad_disable.yml  osad_fix.yml  osad_install.yml  servers.lst
+[root@esu4v390 mst_osad]# cat osad_disable.yml
+---
+- hosts: servers
+#  remote_user: root
+  become: yes
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Ensure osad is running and will start on boot.
+    service: name=osad enabled=no
+[root@esu4v390 mst_osad]# cat osad_fix.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Remove osad-auth.conf file.
+    file: path=/etc/sysconfig/rhn/osad-auth.conf state=absent
+  - name: Restart osad.
+    service: name=osad state=restarted
+[root@esu4v390 mst_osad]# cat osad_install.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Ensure osad is installed.
+    yum: name=osad state=latest
+  - name: Ensure osad is running and will start on boot.
+    service: name=osad state=running enabled=yes
+[root@esu4v390 mst_osad]# cd ../mst_rhn_check
+[root@esu4v390 mst_rhn_check]# ls
+1a.lst  1b.lst  rhn_check.yml  ste_2_14.lst
+[root@esu4v390 mst_rhn_check]# cat rhn_check.yml
+- hosts: servers
+  remote_user: root
+  serial: 25
+  gather_facts: no
+
+  tasks:
+  - name: rhn_check
+    command:  /usr/sbin/rhn_check
+
+[root@esu4v390 mst_rhn_check]# cd ../mst_setfacl
+[root@esu4v390 mst_setfacl]# ls
+setfacl_carbonblack.yml  setfacl_dataprotector.yml
+[root@esu4v390 mst_setfacl]# cat setfacl_carbonblack.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Remove all existing ACLs from /var/log/cb.
+    command: setfacl -b -R /var/log/cb/
+
+  - name: Set default mask on /var/log/cb.
+#    acl: name=/var/log/cb default=yes etype=mask permissions="r-X" state=present recursive=yes
+    command: setfacl -d -R -m m:rX /var/log/cb/
+
+  - name: Set mask on /var/log/cb.
+#    acl: name=/var/log/cb etype=mask permissions="r-X" state=present recursive=yes
+    command: setfacl -R -m m:rX /var/log/cb/
+
+  - name: Set default permissions on /var/log/cb for UxAG_CarbonBlackMonitoringTool_Admin.
+#    acl: name=/var/log/cb default=yes etype=group entity=UxAG_CarbonBlackMonitoringTool_Admin permissions="r-X" state=present recursive=yes
+    command: setfacl -d -R -m g:UxAG_CarbonBlackMonitoringTool_Admin:rX /var/log/cb/
+
+  - name: Set permissions on /var/log/cb for UxAG_CarbonBlackMonitoringTool_Admin.
+#    acl: name=/var/log/cb etype=group entity=UxAG_CarbonBlackMonitoringTool_Admin permissions="r-X" state=present recursive=yes
+    command: setfacl -R -m g:UxAG_CarbonBlackMonitoringTool_Admin:rX /var/log/cb/
+
+  - name: Set default mask on /etc/cb.
+    command: setfacl -d -R -m m:rwX /etc/cb/
+
+  - name: Set mask on /etc/cb.
+    command: setfacl -R -m m:rwX /etc/cb/
+
+  - name: Set default permissions on /etc/cb for UxAG_CarbonBlackMonitoringTool_Admin.
+    command: setfacl -d -R -m g:UxAG_CarbonBlackMonitoringTool_Admin:rwX /etc/cb/
+
+  - name: Set permissions on /etc/cb for UxAG_CarbonBlackMonitoringTool_Admin.
+    command: setfacl -R -m g:UxAG_CarbonBlackMonitoringTool_Admin:rwX /etc/cb/
+
+
+# recursive=yes doesn't work in this version of Ansible.
+[root@esu4v390 mst_setfacl]# cat setfacl_dataprotector.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Set default acl on /opt/omni.
+    acl: name=/opt/omni default=yes entity=UxAG_ifs_backups etype=group permissions="rwX" state=present recursive=yes
+
+  - name: Set acl on /opt/omni.
+    acl: name=/opt/omni entity=UxAG_ifs_backups etype=group permissions="rwX" state=present recursive=yes
+
+  - name: Set default acl on /etc/opt/omni.
+    acl: name=/etc/opt/omni default=yes entity=UxAG_ifs_backups etype=group permissions="rwX" state=present recursive=yes
+
+  - name: Set acl on /etc/opt/omni.
+    acl: name=/etc/opt/omni entity=UxAG_ifs_backups etype=group permissions="rwX" state=present recursive=yes
+
+  - name: Set default acl on /var/opt/omni.
+    acl: name=/var/opt/omni default=yes entity=UxAG_ifs_backups etype=group permissions="rwX" state=present recursive=yes
+
+  - name: Set acl on /var/opt/omni.
+    acl: name=/var/opt/omni entity=UxAG_ifs_backups etype=group permissions="rwX" state=present recursive=yes
+
+  - name: Set acl on /etc/hosts.
+    acl: name=/etc/hosts entity=UxAG_ifs_backups etype=group permissions="rw" state=present
+[root@esu4v390 mst_setfacl]# cd ../mst_vmware_tools
+[root@esu4v390 mst_vmware_tools]# ls
+ekstrom.lst  fail.lst  inv  inv2  inv3  inv4  ste.lst  tue_am_pci.lst  vmware_tools_clean_install.yml  vmware_tools_version_check.yml
+[root@esu4v390 mst_vmware_tools]# cat vmware_tools_clean_install.yml
+---
+# Adam Woolfrom  01/06/17  Created.
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Check if VMware Tools is installed outside of RPM.
+    stat:
+      path: /usr/bin/vmware-uninstall-tools.pl
+    register: vmt_uninstall
+
+  - name: Uninstall VMware Tools (if installed outside of RPM).
+    command: /usr/bin/vmware-uninstall-tools.pl
+    when: vmt_uninstall.stat.exists
+
+  - name: Import the VMware GPG key.
+    rpm_key: state=present key=http://esu4v352/pub/gpg/VMWARE-PACKAGING-GPG-RSA-KEY.pub
+
+  - name: Install vmware-tools-esx-kmods.
+    yum: name=vmware-tools-esx-kmods state=latest
+
+  - name: Install vmware-tools-esx-nox.
+    yum: name=vmware-tools-esx-nox state=latest
+[root@esu4v390 mst_vmware_tools]# cat vmware_tools_version_check.yml
+---
+# Adam Woolfrom  01/06/17  Created.
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Get VMware Tools version.
+    command: /usr/sbin/vmtoolsd -v
+    register: result
+
+  - debug:
+      msg: "VMware Tools version on {{inventory_hostname}} is: {{result.stdout_lines}}"
+[root@esu4v390 mst_vmware_tools]# cd ..
+[root@esu4v390 playbooks]# ls
+adhoc                                 mst_connection_verify     mst_enable_fastboot        mst_isp            mst_nfs_check         mst_package_install  mst_rsa           mst_ssp             nfs_management_ip_check
+mst_2factor_exclude                   mst_create_users          mst_files                  mst_isp_patching   mst_nmonutil_setup    mst_qpm_check        mst_rsa_manual    mst_sssd            os_version_print
+mst_add_certificateadmins_to_servers  mst_cyberarkid            mst_grub_password          mst_ksplice        mst_nscd              mst_reboot           mst_rsa_module    mst_telnet_cleanup  puppet_install
+mst_add_group_to_users.allow          mst_disable_iptables      mst_host_explorer_install  mst_multipath      mst_ol_convert        mst_reboot_fix       mst_sat_register  mst_vas_upgrade     ro_fs_check
+mst_carkaim                           mst_disable_repos         mst_hp_bl460c_check        mst_network_check  mst_osad              mst_rhn_check        mst_setfacl       mst_vmware_tools    run_script
+mst_chef_prereqs                      mst_downgrade_irqbalance  mst_install_cheferson      mst_nfs_automount  mst_os_version_check  mst_ro_fs            mst_set_root      mst_yum_update
+[root@esu4v390 playbooks]# cd mst_chef_prereqs
+[root@esu4v390 mst_chef_prereqs]# ls
+mst_chef_prereqs.yml  mst_perf_file_change.yml  peter.lst  public_cloud_wdc_servers.lst  servers.xml  vmware_wdc_servers.lst
+[root@esu4v390 mst_chef_prereqs]# cat mst_chef_prereqs.yml
+- hosts: servers
+  gather_facts: no
+  serial: 30
+  tasks:
+   - name: Create and secure directory
+     file:
+      path: /var/chef
+      owner: chefsolo
+      group: chefsolo
+      state: directory
+
+   - name: Create and secure directory
+     file:
+       path: /var/chef/cache
+       owner: chefsolo
+       group: chefsolo
+       state: directory
+
+   - name:    Ensure /tmp is secured correctly
+     file:   path=/tmp state=directory mode=1777
+[root@esu4v390 mst_chef_prereqs]# cat mst_perf_file_change.yml
+- hosts: servers
+  gather_facts: no
+  serial: 30
+  tasks:
+   - name: Create and secure directory
+     file:
+      path: /var/chef
+      owner: chefsolo
+      group: chefsolo
+      state: directory
+
+   - name: Create and secure directory
+     file:
+       path: /var/chef/cache
+       owner: chefsolo
+       group: chefsolo
+       state: directory
+
+[root@esu4v390 mst_chef_prereqs]# cd ../mst_downgrade_irqbalance
+[root@esu4v390 mst_downgrade_irqbalance]# ls
+downgrade_irqbalance.yml  ste.lst
+[root@esu4v390 mst_downgrade_irqbalance]# cat downgrade_irqbalance.yml
+# Scott Eckenrode 03/20/17  Created.
+ - hosts: servers
+   serial: 15
+   gather_facts: no
+   become: yes
+   become_method: sudo
+   become_user: root
+
+   tasks:
+   - set_fact:
+      isitinstalled.rc: -1
+      rpmerror.rc: -1
+
+   - name: See if irqbalance-0.55-15.1 is installed
+     shell: rpm -q irqbalance-0.55-17.0.1.el5_11
+     register: isitinstalled
+     ignore_errors: yes
+
+   - name: Downgrade irqbalance if .1 version is installed
+     shell: rpm -Uvh http://lp001xsswp0001/pub/irqbalance-0.55-17.el5.i386.rpm --oldpackage
+     when: isitinstalled.rc == 0
+     register: rpmerror
+
+   - name: Restart irqbalance if version was downgraded
+     service:
+       name: irqbalance
+       state: restarted
+     when:
+       - rpmerror.changed
+       - isitinstalled.rc == 0
+
+   - name: Register hwclock output after a delay
+     shell: sleep 10; /sbin/hwclock
+     register: hwclockoutput
+   # when:
+   #     - rpmerror.changed
+   #     - isitinstalled.rc == 0
+
+   - debug: var=hwclockoutput.stdout_lines
+[root@esu4v390 mst_downgrade_irqbalance]# cd ../mst_install_cheferson
+[root@esu4v390 mst_install_cheferson]# ls
+install_cheferson.yml  msp_servers.lst  perf_servers.lst  test_vms.lst  test_vmware.lst  vmware_wdc_servers.lst
+[root@esu4v390 mst_install_cheferson]# cat install_cheferson.yml
+- hosts: servers
+  serial: 30
+  tasks:
+
+  - name: Install the cheferson package
+    yum: name=http://artifacts.devops.fds.com/artifactory/binrepo/chef/chef-12.5.1-1.el7.x86_64.rpm state=present
+[root@esu4v390 mst_install_cheferson]# cd ../mst_nfs_automount
+[root@esu4v390 mst_nfs_automount]# ls
+nfs_automount.yml
+[root@esu4v390 mst_nfs_automount]# cat nfs_automount.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Change 'noauto' to '_netdev'
+    replace: dest=/etc/fstab regexp="noauto" replace="_netdev"
+[root@esu4v390 mst_nfs_automount]# cd ../mst_os_version_check
+[root@esu4v390 mst_os_version_check]# ls
+2lymer.lst  3lymer.lst  ep.lst  lymer.lst  os_version_check.ste  os_version_check.yml  ste.lst  temp.lst
+[root@esu4v390 mst_os_version_check]# cat os_version_check.yml
+---
+- hosts: servers
+  tasks:
+     - name: Get facts (uptime may not work if facter is not installed)
+       debug: msg="Server={{ inventory_hostname }}; OS={{ ansible_distribution }}; Kernel={{ ansible_distribution_version }} {{ ansible_kernel }}; Uptime={{ facter_uptime }}"
+[root@esu4v390 mst_os_version_check]# cd mst_ro_fs
+-bash: cd: mst_ro_fs: No such file or directory
+[root@esu4v390 mst_os_version_check]# cd ../mst_ro_fs
+[root@esu4v390 mst_ro_fs]# ls
+800ro.out  inv  inv.file  lymer2.lst  lymer.lst  ro_check_amw.yml  ro_check.yml  ste.lst
+[root@esu4v390 mst_ro_fs]# cat ro_check_amw.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 100
+  gather_facts: no
+  tasks:
+  - name: Check for read-only filesystems
+    shell: ro=$(grep ro, /proc/mounts); if [[ ! -z $ro ]]; then echo $ro; else echo 'No read-only filesystems found.'; fi
+    register: result
+  - debug: msg="{{ inventory_hostname }} {{ result.stdout_lines }}"
+[root@esu4v390 mst_ro_fs]# cat ro_check.yml
+---
+- hosts: servers
+  serial: 30
+  gather_facts: no
+# become:   yes
+  tasks:
+     - name:     read only filesystem check
+       command:  grep ro, /proc/mounts
+[root@esu4v390 mst_ro_fs]# cd ../mst_set_root
+[root@esu4v390 mst_set_root]# ls
+inv  inv_aa  inv_ab  inv_ac  inv_ad  inv_ae  inv_all  mst_set_root_pwd_pci.yml  mst_set_root_pwd.yml  nohup.out.inv_aa  nohup.out.inv_ab  nohup.out.inv_ac  nohup.out.inv_ad  nohup.out.inv_ae  nohup.out.inv_all  testinv
+[root@esu4v390 mst_set_root]# cat mst_set_root_pwd_pci.yml
+---
+- hosts: pci_root
+  remote_user: root
+  gather_facts: no
+  serial: 10
+  tasks:
+  - name: Update root password
+    become: yes
+    user: name=root password='$1$4FXKbiR2$WBceEen86Z7d7/m37RbDg.'
+[root@esu4v390 mst_set_root]# cat mst_set_root_pwd.yml
+---
+- hosts: servers
+  remote_user: root
+  gather_facts: no
+  serial: 10
+  tasks:
+  - name: Update root password
+    # Password generated from: 'openssl passwd -1 <password>'
+    user: name=root password='$1$RROyGHrB$YFwEZdEWoUub7kSxQVa8T0'
+[root@esu4v390 mst_set_root]# cat mst_yum_update
+cat: mst_yum_update: No such file or directory
+[root@esu4v390 mst_set_root]# cd ../mst_yum_update
+[root@esu4v390 mst_yum_update]# ls
+inv  yum_update.yml
+[root@esu4v390 mst_yum_update]# cat yum_update.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  tasks:
+  - name: Run yum -y upgrade
+    yum: name=* state=latest
+[root@esu4v390 mst_yum_update]#
+
+================================================================================================================================================================
+
+Subject: Ansible Script#7
+ 
+
+[bh00493@esu4v390 playbooks]$ cd mst_host_explorer_install
+[bh00493@esu4v390 mst_host_explorer_install]$ ls
+host_explorer_install.yml  inv
+[bh00493@esu4v390 mst_host_explorer_install]$ cat host_explorer_install.yml
+# Adam Woolfrom  11/08/16  Created.
+- hosts: servers
+  remote_user: root
+  gather_facts: no
+  tasks:
+  - name: Ensure Host Explorer is installed.
+    yum: name=HostExplorer-rhel state=latest disable_gpg_check=yes
+    async: 300
+    poll: 30
+  - name: Ensure HostExplorer is running and will start on boot.
+    service: name=TpdHostAgentSvc state=running enabled=yes
+    async: 60
+    poll: 10
+  - name: Force initial check-in.
+    command: /usr/sbin/TpdHostAgent push
+    async: 60
+    poll: 10
+[bh00493@esu4v390 mst_host_explorer_install]$ cd ..
+[bh00493@esu4v390 playbooks]$ cd mst_multipath
+[bh00493@esu4v390 mst_multipath]$ ls
+ekstrom.lst  esu1l172  esu1l320  inv  lymer.lst  multipath.conf  multipath.conf_rhel5  multipath.conf_rhel6or7  multipath_rollout.xml_bkup  multipath_rollout.yml  ste.lst  test_servers
+[bh00493@esu4v390 mst_multipath]$ cat cat multipath_rollout.yml
+cat: cat: No such file or directory
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: yes
+  tasks:
+
+  - name: Make sure multipath is installed and latest.
+    yum:
+     name: device-mapper-multipath
+     state: latest
+
+  - name: Copy multipath.conf for EL 6 or 7.
+    copy: src=multipath.conf_rhel6or7 dest=/etc/multipath.conf owner=root group=root mode=600 backup=yes
+    when: (ansible_distribution_major_version == "6") or
+          (ansible_distribution_major_version == "7")
+
+  - name: Copy multipath.conf for EL 5.
+    copy: src=multipath.conf_rhel5 dest=/etc/multipath.conf owner=root group=root mode=600 backup=yes
+    when: (ansible_distribution_major_version == "5")
+
+#  - name: systemctl enable multipathd.
+#    systemd:
+#        name: multipathd
+#        enabled: True
+#    when: ansible_distribution_major_version == "7"
+
+  - name: chkconfig multipathd on
+    service:
+          name: multipathd
+          enabled: True
+    when: (ansible_distribution_major_version == "5") or
+          (ansible_distribution_major_version == "6")
+
+[bh00493@esu4v390 mst_multipath]$ cat multipath.conf
+cat: multipath.conf: Permission denied
+[bh00493@esu4v390 mst_multipath]$ cd ../mst_ol_convert
+[bh00493@esu4v390 mst_ol_convert]$ ls
+files  inv  mst_ol_convert.yml  mst_ol_fix_os_version.yml  mst_rm_from_sat.py  templates
+[bh00493@esu4v390 mst_ol_convert]$ cat mst_ol_convert.yml
+---
+- hosts: ol_test
+  remote_user: root
+  serial: 10
+  tasks:
+  - name: Deploy convert template
+    template: src=templates/mst_rhel_ol_convert_and_reg.sh dest=/var/tmp/mst_rhel_ol_convert_and_reg.sh owner=root group=wheel mode=0740
+  - name: Run convert template
+    shell: /var/tmp/mst_rhel_ol_convert_and_reg.sh
+  - name: Run the remove from Satellite Python script
+    command: /etc/ansible/playbooks/mst_ol_convert/mst_rm_from_sat.py {{ ansible_fqdn }}
+    delegate_to: 127.0.0.1
+  - name: Copy RPM for 6.6
+    copy: src=files/oraclelinux-release-6Server-6.0.2.x86_64.rpm dest=/tmp/oraclelinux-release-6Server-6.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-504.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.6
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-6.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-504.*.el6.x86_64")
+  - name: Copy RPM for 6.5
+    copy: src=files/oraclelinux-release-6Server-5.0.2.x86_64.rpm dest=/tmp/oraclelinux-release-6Server-5.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-431.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.5
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-5.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-431.*.el6.x86_64")
+  - name: Copy RPM for 6.4
+    copy: src=files/oraclelinux-release-6Server-4.0.4.x86_64.rpm dest=/tmp/oraclelinux-release-6Server-4.0.4.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-358.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.4
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-4.0.4.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-358.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.3
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-3.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-279.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.2
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-2.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-220.*.el6.x86_64")
+[bh00493@esu4v390 mst_ol_convert]$ cat mst_ol_fix_os_version.yml
+---
+- hosts: test
+  remote_user: root
+  serial: 10
+  tasks:
+  - name: Copy RPM for 6.6
+    copy: src=files/oraclelinux-release-6Server-6.0.2.x86_64.rpm dest=/tmp/oraclelinux-release-6Server-6.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-504.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.6
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-6.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-504.*.el6.x86_64")
+  - name: Copy RPM for 6.5
+    copy: src=files/oraclelinux-release-6Server-5.0.2.x86_64.rpm dest=/tmp/oraclelinux-release-6Server-5.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-431.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.5
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-5.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-431.*.el6.x86_64")
+  - name: Copy RPM for 6.4
+    copy: src=files/oraclelinux-release-6Server-4.0.4.x86_64.rpm dest=/tmp/oraclelinux-release-6Server-4.0.4.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-358.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.4
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-4.0.4.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-358.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.3
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-3.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-279.*.el6.x86_64")
+  - name: Downgrade oraclelinux-release package to 6.2
+    command: yum downgrade -y /tmp/oraclelinux-release-6Server-2.0.2.x86_64.rpm
+    when: ansible_kernel | search("2.6.32-220.*.el6.x86_64")
+[bh00493@esu4v390 mst_ol_convert]$ cat mst_rm_from_sat.py
+#!/usr/bin/python
+
+import xmlrpclib
+import sys
+
+#
+# Constants defining how to access the Spacewalk server.
+#
+SATELLITE_URL = "https://esu2v245.federated.fds/rpc/api"
+SATELLITE_LOGIN = "sat-admin"
+SATELLITE_PASSWORD = "100WOW!1010s"
+
+#
+# Create our connection objects.
+#
+client = xmlrpclib.Server(SATELLITE_URL, verbose=0)
+key = client.auth.login(SATELLITE_LOGIN, SATELLITE_PASSWORD)
+
+#
+# Method which takes the name of a server as a string argument.
+# It queries the Spacewalk server for the current list of servers
+# and looks up the server we passed. A list of system ids is
+# returned for the server name.
+#
+def getName(s):
+        list = client.system.listUserSystems(key)
+        svrs = []
+        for grp in list:
+                n = grp.get('name')
+                if ( s == n ):
+                        svrs.append(grp.get('id'))
+        return(svrs)
+
+#
+# Method which takes the Spacewalk connection key and a list of
+# system ids as its arguments. It calls the Spacewalk server and
+# removes each system id.
+#
+def rmSvr(key, ids):
+        for id in ids:
+                client.system.deleteSystems(key, id)
+def showUsage():
+        print "Usage: mst_rmsrv.py <server fqdn>"
+
+#
+# Skip the first entry in the argument array and then process each
+# of the arguments passed it on the command line.
+#
+if len(sys.argv) > 1:
+        for svr in sys.argv[1:]:
+                svrIds = getName(svr)
+                if ( len(svrIds) != 0 ):
+                        print "Deleting server '{0}' from Spacewalk.".format(svr)
+                        rmSvr(key, svrIds)
+                else:
+                        print "Warning: '{0}' is not a registered server in Spacewalk.".format(svr)
+                        sys.exit(0)
+else:
+        showUsage()
+        sys.exit(1)
+[bh00493@esu4v390 mst_ol_convert]$
+====================================================================================================================================================
+
+Subject: Ansible Script#6
+ 
+
+[bh00493@esu4v390 playbooks]$ cd mst_reboot
+[bh00493@esu4v390 mst_reboot]$ ls
+inv  reboot.yml
+[bh00493@esu4v390 mst_reboot]$ cat reboot.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 20
+  gather_facts: no
+  tasks:
+  - name: Reboot
+    shell: shutdown -r now
+    async: 1
+    poll: 0
+
+  - name: Wait for server to come online
+    local_action: wait_for host={{ inventory_hostname }} state=started delay=30 timeout=300
+[bh00493@esu4v390 mst_reboot]$ cd ../mst_rsa_module
+[bh00493@esu4v390 mst_rsa_module]$ ls
+ansible.cfg  rsa_module.yml  sd_pam.conf
+[bh00493@esu4v390 mst_rsa_module]$ cat ansible.cfg
+[defaults]
+host_key_checking = False
+[bh00493@esu4v390 mst_rsa_module]$ cat rsa_module.yml
+
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: push mst_rsa module to new servers
+    copy:
+      src: /etc/ansible/playbooks/mst_rsa_module/sd_pam.conf
+      dest: /etc/sd_pam.conf
+      owner: root
+      group: root
+      mode: "u=rw,g=r,o=r"
+[bh00493@esu4v390 mst_rsa_module]$ cat sd_pam.conf
+#Managed by Puppet
+#VAR_ACE ::  the location where the sdconf.rec, sdstatus.12 and securid files will go
+# default value is /var/ace
+VAR_ACE=/var/ace
+
+
+#RSATRACELEVEL :: To enable logging in UNIX for securid authentication
+#                   :: 0 Disable logging for securid authentication
+#                   :: 1 Logs regular messages for securid authentication
+#                   :: 2 Logs function entry points for securid authentication
+#                   :: 4 Logs function exit points for securid authentication
+#                   :: 8 All logic flow controls use this for securid authentication
+# NOTE              :: For combinations, add the corresponding values
+# default value is 0
+RSATRACELEVEL=0
+
+
+#RSATRACEDEST :: Specify the file path where the logs are to be redirected for securid authentication.
+#                   :: If this is not set, by default the logs go to Error output.
+RSATRACEDEST=
+
+
+#ENABLE_USERS_SUPPORT :: 1 to enable; 0 to disable users support
+# default value is 0
+ENABLE_USERS_SUPPORT=1
+
+
+#INCL_EXCL_USERS :: 0 exclude users from securid authentication
+#                   :: 1 include users for  securid authentication
+# default value is 0
+INCL_EXCL_USERS=0
+
+
+#LIST_OF_USERS :: a list of users to include or exclude from SecurID Authentication.  Separate user using a : As in: user1:user2
+LIST_OF_USERS=root:cyberark:oracle:b0_emn1:b0_emn2:b0_cmdb:b0_emss:b0_ems1:b0_ems2:b0_ems7:b0_ems8:b0_ems9:b0_ems10:b0_ems13:b0_ems14:b0_ems26:b0_sscop:b0_emst:tibco:tibco2:biadmin:b0_ftp:db2ambs:db2as:db2blms:db2css:db2mbld:db2mblq1:db2mblq2:db2mblq3:db2mblq4:db2mcys:db2mon1:db2mon2:db2util:db2was:$da-MST-SiteScope:b0_udoa:myservices:confluence:svnadmin:readonly:fsgapp:mcywas:b0_nsau:chefsolo:CAS_USER_Admin:CAS_USER_Write:CAS_USER_Tmsh:myservicesapi:hpoo:vcloud:splunk:mysrvenvadmin:d2cqa:epmtrn:oradev1:oratst1:oratst2:obiqa:svc-sejenkins:svc-ifsa:tibco:tibco2:sasdmadm:sasautrt:sasmodatusr:mdlmgradm:sasdemo:lsfaadmin:lsfuser:ricci:luci:sassrv:yarn:mapred:lasradm:ggate:smmsp:sapadm:daaadm:ecdadm:sjdadm:smdadm:ecxadm:bwdadm:sftp-user1:cassandra:kronos:siteopsapp:svc-ifsautouser:wmsdev:wmsadmin:controlm:delphix:sa-frk-adm-01:saprouter:esbapp:mcsapp:$svc_arxscan:spark:tibco:cb-clustercomm:d2cenvusr:svc-ifsa:svc-ifsautouser:kafka:ifsmftcc:dyna:nagios:datapower:da-certadmin:sas:nmonutil:SSH_USER_01
+
+
+#PAM_IGNORE_SUPPORT_FOR_USERS :: 1 to return PAM_IGNORE if a user is not SecurID authenticated due to user exclusion support
+#                   :: 0 to UNIX authenticate a user that is not SecurID authenticated due to user exclusion support
+# default value is 0
+PAM_IGNORE_SUPPORT_FOR_USERS=1
+
+
+#ENABLE_GROUP_SUPPORT :: 1 to enable; 0 to disable group support
+# default value is 0
+ENABLE_GROUP_SUPPORT=1
+
+
+#INCL_EXCL_GROUPS :: 1 to always prompt the listed groups for securid authentication (include)
+#                 :: 0 to never prompt the listed groups for securid authentication (exclude)
+# default value is 0
+INCL_EXCL_GROUPS=0
+
+
+#LIST_OF_GROUPS :: a list of groups to include or exclude...Example
+LIST_OF_GROUPS=wheel:#KSM_ServiceAccounts
+
+
+#PAM_IGNORE_SUPPORT :: 1 to return PAM_IGNORE if a user is not SecurID authenticated due to their group membership
+#                   :: 0 to UNIX authenticate a user that is not SecurID authenticated due to their group membership
+# default value is 0
+PAM_IGNORE_SUPPORT=0
+
+
+#AUTH_CHALLENGE_USERNAME_STR :: prompt message to ask user for their username/login id
+AUTH_CHALLENGE_USERNAME_STR=Enter USERNAME :
+
+
+#AUTH_CHALLENGE_RESERVE_REQUEST_STR :: prompt message to ask administrator for their System password
+AUTH_CHALLENGE_RESERVE_REQUEST_STR=Please enter System Password for root :
+
+
+#AUTH_CHALLENGE_PASSCODE_STR :: prompt message to ask user for their Passcode
+AUTH_CHALLENGE_PASSCODE_STR=Enter PASSCODE :
+
+
+#AUTH_CHALLENGE_PASSWORD_STR :: prompt message to ask user for their Password
+AUTH_CHALLENGE_PASSWORD_STR=Enter your PASSWORD :
+
+
+#BACKOFF_TIME_FOR_RSA_EXCLUDED_UNIX_USERS :: 0  Disable retry UNIX authentication after failed login attempt
+#                   :: 1  Enable retry UNIX authentication after failed login attempt but treated setting as pow(3, failattempts) sec delay
+#                   :: 2  Enable retry UNIX authentication after failed login attempt but treated setting as pow(3, failattempts) sec delay
+#                   :: 3  Enable retry UNIX authentication after failed login attempt with pow(3, failattempts) sec delay
+#                   :: 4  Enable retry UNIX authentication after failed login attempt with pow(4, failattempts) sec delay
+#                   :: 5/Above  Enable retry UNIX authentication after failed login attempt with pow(5/Above, failattempts) sec delay
+#                   :: If no BACKOFF_TIME_FOR_RSA_EXCLUDED_UNIX_USERS setting is present, then  treated as pow(4, failattempts) sec delay
+# default value is 4
+BACKOFF_TIME_FOR_RSA_EXCLUDED_UNIX_USERS=4
+
+
+[bh00493@esu4v390 mst_rsa_module]$ cd ../mst_telnet_cleanup
+[bh00493@esu4v390 mst_telnet_cleanup]$ ls
+fa.inv  telnet_cleanup.yml  telnet.lst  validate.lst
+[bh00493@esu4v390 mst_telnet_cleanup]$ cat telnet_cleanup.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Ensure telnet-server is not installed.
+    yum: name=telnet-server state=absent
+  - name: Reload xinetd to close port 23.
+    service: name=xinetd state=reloaded
+[bh00493@esu4v390 mst_telnet_cleanup]$ cd ../puppet_install
+[bh00493@esu4v390 puppet_install]$ ls
+files  inv  puppet_install.yml
+[bh00493@esu4v390 puppet_install]$ cat puppet_install.yml
+---
+- hosts: puppet_list
+  remote_user: root
+  serial: 20
+  tasks:
+  - name: Install puppet
+    yum: pkg=puppet-3.8.4-1.el5 state=latest disable_gpg_check=yes
+    async: 60
+    poll: 60
+  - name: Transfer the conf file
+    template: src=files/etc/puppet.conf dest=/etc/puppet/puppet.conf mode=0644 backup=yes
+  - name: Configure service...
+    service: name=puppet state=restarted enabled=yes
+  - name: Ensure puppet is started at boot time
+    action: command /sbin/chkconfig puppet on
+
+[bh00493@esu4v390 puppet_install]$ cd ../mst_add_group_to_users.allow
+[bh00493@esu4v390 mst_add_group_to_users.allow]$ ls
+mst_add_group_to_users.allow.yml  test.lst
+[bh00493@esu4v390 mst_add_group_to_users.allow]$ cat mst_add_group_to_users.allow.yml
+- hosts: servers
+  gather_facts: no
+  serial: 30
+  become: yes
+
+  tasks:
+    - name:   Add group to the users.allow file
+      lineinfile: dest=/etc/opt/quest/vas/users.allow insertafter=EOF line="MST-StoresDomain-Users"
+
+[bh00493@esu4v390 mst_add_group_to_users.allow]$ cd ../mst_disable_iptables
+[bh00493@esu4v390 mst_disable_iptables]$ ls
+disable_iptables.yml
+[bh00493@esu4v390 mst_disable_iptables]$ cat disable_iptables.yml
+---
+- hosts: servers
+  remote_user: root
+  serial: 10
+  gather_facts: no
+  tasks:
+  - name: Ensure IPTables is not running and disabled.
+    service: name=iptables state=stopped enabled=no
+[bh00493@esu4v390 mst_disable_iptables]$
+
+====================================================================================================================================================================
+
+
+Subject: Ansible Scripts in /var/tmp/
+ 
+
+[root@esu4v390 ~]# cd /var/tmp
+[root@esu4v390 tmp]# ls
+b004927  FilesChown.sh  GTPBACKUP.file  kanboard-latest.zip             session_20160119_150123  session_20160119_150718  www-html.tar
+blah     GPT.INI        httpd-etc.tar   mst_rhel_ol_convert_and_reg.sh  session_20160119_150435  sssd_conv.out            yum-b004927-cU4Y7k
+[root@esu4v390 tmp]# cat FilesChown.sh
+chown -h 'b003458' '/home/b003458'
+chown -h 'b003458' '/home/b003458/.vas_logon_server'
+chown -h 'b003458' '/home/b003458/.bash_logout'
+chown -h 'b003458' '/home/b003458/.k5login'
+chown -h 'b003458' '/home/b003458/.vas_disauthcc_1003458'
+chown -h 'b003458' '/home/b003458/.bash_history'
+chown -h 'b003458' '/home/b003458/.bash_profile'
+chown -h 'b003458' '/home/b003458/.bashrc'
+chown -h 'b003548' '/home/b003548'
+chown -h 'b003548' '/home/b003548/.vas_logon_server'
+chown -h 'b003548' '/home/b003548/.bash_logout'
+chown -h 'b003548' '/home/b003548/.k5login'
+chown -h 'b003548' '/home/b003548/.bash_history'
+chown -h 'b003548' '/home/b003548/.bash_profile'
+chown -h 'b003548' '/home/b003548/.bashrc'
+chown -h 'b004540' '/home/b004540'
+chown -h 'b004540' '/home/b004540/.vas_logon_server'
+chown -h 'b004540' '/home/b004540/.bash_logout'
+chown -h 'b004540' '/home/b004540/.k5login'
+chown -h 'b004540' '/home/b004540/.bash_history'
+chown -h 'b004540' '/home/b004540/.vas_disauthcc_1004540'
+chown -h 'b004540' '/home/b004540/.bash_profile'
+chown -h 'b004540' '/home/b004540/.bashrc'
+[root@esu4v390 tmp]# cat mst_rhel_ol_convert_and_reg.sh
+
+#!/bin/bash
+#Below we will decide if the server should attach to Johns Creek or Lorain Satellite.
+echo "Configuring location variables..."
+#Attach to Johns Creek Spacewalk
+spacewalk_server="esu4v352.federated.fds"
+rpm -ivh http://esu4v352/pub/rhn-org-trusted-ssl-cert-1.0-1.noarch.rpm
+echo "Johns Creek was selected as location."
+
+echo "Importing GPG Keys for OL signed RPMs."
+rpm --import http://esu4v352/pub/gpg/RPM-GPG-KEY-oracle-ol6
+rpm --import http://esu4v352/pub/gpg/RPM-GPG-KEY-oracle-ol7
+
+echo "Setting activation key and registering to Spacewalk server."
+activation_key="1-5f2824e5ea0dbae9c90feb635605750c"
+rhnreg_ks --serverUrl=http://$spacewalk_server/XMLRPC --activationkey=$activation_key --force
+
+echo "Remove and update libreport, and update abrt"
+yum shell -y << 'EOF'
+remove libreport-plugin-rhtsupport
+update libreport abrt
+run
+quit
+EOF
+echo "Update the rhn client."
+yum update rhn-check rhnsd redhat-release -y
+echo "Setup osad."
+yum install osad -y
+service osad start
+chkconfig osad on
+
+echo "Enable remote configuration."
+yum install rhncfg-actions.noarch -y
+rhn-actions-control --enable-all
+[root@esu4v390 tmp]# cd b004927
+[root@esu4v390 b004927]# ls
+001~     003~               adcheck.secret~  createhomedir~                   dellQuest.wiki~  ibmsoftlayer.wiki~           oracleCloud.listSeclist.audit~   pre-ansible-user-section.sh~
+001.sh~  aaaCommands.wiki~  ansibledisk.sh~  create-password-hash~            gnuplot.sh~      mst_important_OS_output.sh~  patching.wiki~                   zzzToDO.wiki~
+002~     adcheck~           contact.wiki~    deletediskonrunningserver.wiki~  grub2.wiki~      oracleCloud.audit~           pre-ansible-package-section.sh~
+[root@esu4v390 b004927]#
+
